@@ -1,61 +1,76 @@
 @echo off
-chcp 65001 >nul
 setlocal
-title ì‹¤í™© íŒŒì›Œí’€ í”„ë¡œì•¼êµ¬ 2024-2025 í•œê¸€íŒ¨ì¹˜ ì ìš©
+title Pawa2024 KR patch
 
 echo ============================================================
-echo  ì‹¤í™© íŒŒì›Œí’€ í”„ë¡œì•¼êµ¬ 2024-2025 (Switch) í•œê¸€íŒ¨ì¹˜ ì ìš©
+echo  ½ÇÈ² ÆÄ¿öÇ® ÇÁ·Î¾ß±¸ 2024-2025 (Switch) ÇÑ±ÛÆĞÄ¡ Àû¿ë
 echo ============================================================
 echo.
-echo  [ì¤€ë¹„ë¬¼] ë³¸ì¸ì´ ë¤í”„í•œ ì›ë³¸ íŒŒì¼ 4ê°œë¥¼ ì´ í´ë”ì— ë‘ì„¸ìš”:
-echo    main        (ExeFSì—ì„œ ì¶”ì¶œ)
-echo    RES00.RDB   (RomFSì˜ cdvdroot í´ë”)
-echo    RES00.RDI   (RomFSì˜ cdvdroot í´ë”)
-echo    RES10.RDB   (RomFSì˜ cdvdroot í´ë”)
-echo  * ê²Œì„ ì—…ë°ì´íŠ¸(2024-2025 ìµœì‹ )ë¥¼ ì ìš©í•œ ìƒíƒœë¡œ ë¤í”„í•´ì•¼ í•©ë‹ˆë‹¤.
+echo  [ÁØºñ¹°] º»ÀÎÀÌ ´ıÇÁÇÑ ¿øº» ÆÄÀÏ 4°³¸¦ ÀÌ Æú´õ¿¡ µÎ¼¼¿ä:
+echo    main        (ExeFS¿¡¼­ ÃßÃâ)
+echo    RES00.RDB   (RomFSÀÇ cdvdroot Æú´õ)
+echo    RES00.RDI   (RomFSÀÇ cdvdroot Æú´õ)
+echo    RES10.RDB   (RomFSÀÇ cdvdroot Æú´õ)
+echo  * °ÔÀÓ ¾÷µ¥ÀÌÆ®(2024-2025 ÃÖ½Å)¸¦ Àû¿ëÇÑ »óÅÂ·Î ´ıÇÁÇØ¾ß ÇÕ´Ï´Ù.
 echo.
 
 set TID=0100d1c01c194000
 set OUT=mods\%TID%
 
-for %%F in (main RES00.RDB RES00.RDI RES10.RDB) do (
-    if not exist "%%F" (
-        echo [ì˜¤ë¥˜] ì›ë³¸ íŒŒì¼ %%F ê°€ ì—†ìŠµë‹ˆë‹¤. ìœ„ ì•ˆë‚´ë¥¼ í™•ì¸í•˜ì„¸ìš”.
-        pause
-        exit /b 1
-    )
+if not exist "main"      goto :missing
+if not exist "RES00.RDB" goto :missing
+if not exist "RES00.RDI" goto :missing
+if not exist "RES10.RDB" goto :missing
+
+if not exist "%OUT%\ExeFS" mkdir "%OUT%\ExeFS"
+if not exist "%OUT%\RomFS\cdvdroot" mkdir "%OUT%\RomFS\cdvdroot"
+
+echo [1/4] main ÆĞÄ¡ Áß...
+.\xdelta3.exe -d -f -s "main" "Pawa2024KR_v1.0_main.xdelta" "%OUT%\ExeFS\main"
+if errorlevel 1 goto :err
+
+echo [2/4] RES00.RDI ÆĞÄ¡ Áß...
+.\xdelta3.exe -d -f -s "RES00.RDI" "Pawa2024KR_v1.0_RES00.RDI.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDI"
+if errorlevel 1 goto :err
+
+echo [3/4] RES10.RDB ÆĞÄ¡ Áß...
+.\xdelta3.exe -d -f -s "RES10.RDB" "Pawa2024KR_v1.0_RES10.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES10.RDB"
+if errorlevel 1 goto :err
+
+if not exist "Pawa2024KR_v1.0_RES00.RDB.xdelta" (
+    echo [4/4] ºĞÇÒ ÆĞÄ¡ °áÇÕ Áß...
+    copy /b "Pawa2024KR_v1.0_RES00.RDB.xdelta.001"+"Pawa2024KR_v1.0_RES00.RDB.xdelta.002" "Pawa2024KR_v1.0_RES00.RDB.xdelta" >nul
+    if errorlevel 1 goto :err
 )
-
-mkdir "%OUT%\ExeFS" 2>nul
-mkdir "%OUT%\RomFS\cdvdroot" 2>nul
-
-echo [1/4] main íŒ¨ì¹˜ ì¤‘...
-xdelta3.exe -d -f -s "main" "Pawa2024KR_v1.0_main.xdelta" "%OUT%\ExeFS\main" || goto :err
-echo [2/4] RES00.RDI íŒ¨ì¹˜ ì¤‘...
-xdelta3.exe -d -f -s "RES00.RDI" "Pawa2024KR_v1.0_RES00.RDI.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDI" || goto :err
-echo [3/4] RES10.RDB íŒ¨ì¹˜ ì¤‘...
-xdelta3.exe -d -f -s "RES10.RDB" "Pawa2024KR_v1.0_RES10.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES10.RDB" || goto :err
-echo [4/4] RES00.RDB íŒ¨ì¹˜ ì¤‘... (6.6GB, ìˆ˜ ë¶„ ì†Œìš”)
-xdelta3.exe -B 268435456 -d -f -s "RES00.RDB" "Pawa2024KR_v1.0_RES00.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDB" || goto :err
+echo [4/4] RES00.RDB ÆĞÄ¡ Áß... (6.6GB, ¼ö ºĞ ¼Ò¿ä)
+.\xdelta3.exe -B 268435456 -d -f -s "RES00.RDB" "Pawa2024KR_v1.0_RES00.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDB"
+if errorlevel 1 goto :err
 
 echo.
 echo ============================================================
-echo  ì™„ë£Œ! ìƒì„±ëœ mods í´ë”ë¥¼ ì‚¬ìš©í•˜ì„¸ìš”.
+echo  ¿Ï·á! »ı¼ºµÈ mods Æú´õ¸¦ »ç¿ëÇÏ¼¼¿ä.
 echo.
-echo  [Ryujinx]  mods\%TID% í´ë”ë¥¼
-echo     Ryujinxì˜ mods\contents\ ì•„ë˜ì— ë³µì‚¬
-echo     (ìš°í´ë¦­ ê²Œì„ - Open Mods Directory ë¡œ ì—´ë¦¬ëŠ” ìœ„ì¹˜)
+echo  [Ryujinx]  mods\%TID% Æú´õ¸¦
+echo     RyujinxÀÇ mods\contents\ ¾Æ·¡¿¡ º¹»ç
+echo     (°ÔÀÓ ¿ìÅ¬¸¯ - Open Mods Directory ·Î ¿­¸®´Â À§Ä¡)
 echo.
-echo  [Switch ì‹¤ê¸°(Atmosphere)]  êµ¬ì¡°ë¥¼ ë‹¤ìŒìœ¼ë¡œ ë°”ê¿” SDì¹´ë“œì— ë³µì‚¬:
+echo  [Switch ½Ç±â(Atmosphere)]  ±¸Á¶¸¦ ´ÙÀ½À¸·Î ¹Ù²ã SDÄ«µå¿¡ º¹»ç:
 echo     atmosphere\contents\%TID%\exefs\main
-echo     atmosphere\contents\%TID%\romfs\cdvdroot\RES00.RDB (RDI, RES10 ë™ì¼)
-echo     (ExeFSâ†’exefs, RomFSâ†’romfs ì†Œë¬¸ì í´ë”ëª… ì£¼ì˜)
+echo     atmosphere\contents\%TID%\romfs\cdvdroot\RES00.RDB (RDI, RES10 µ¿ÀÏ)
+echo     (ExeFS´Â exefs, RomFS´Â romfs ¼Ò¹®ÀÚ Æú´õ¸í ÁÖÀÇ)
 echo ============================================================
 pause
 exit /b 0
 
+:missing
+echo [¿À·ù] ¿øº» ÆÄÀÏ(main / RES00.RDB / RES00.RDI / RES10.RDB)ÀÌ ºÎÁ·ÇÕ´Ï´Ù.
+echo        À§ ¾È³»¸¦ È®ÀÎÇØ 4°³ ÆÄÀÏÀ» ÀÌ Æú´õ¿¡ µÎ°í ´Ù½Ã ½ÇÇàÇÏ¼¼¿ä.
+pause
+exit /b 1
+
 :err
 echo.
-echo [ì˜¤ë¥˜] íŒ¨ì¹˜ ì ìš© ì‹¤íŒ¨ â€” ì›ë³¸ íŒŒì¼ì´ ì˜¬ë°”ë¥¸ ë²„ì „ì¸ì§€ í™•ì¸í•˜ì„¸ìš”.
+echo [¿À·ù] ÆĞÄ¡ Àû¿ë ½ÇÆĞ - ¿øº» ÆÄÀÏÀÌ ¿Ã¹Ù¸¥ ¹öÀüÀÎÁö È®ÀÎÇÏ¼¼¿ä.
+echo        (¸±¸®Áî ÆäÀÌÁöÀÇ MD5 Ã¼Å©¼¶°ú ºñ±³ÇØ º¸¼¼¿ä)
 pause
 exit /b 1
