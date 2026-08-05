@@ -15,8 +15,8 @@ workspace/
   romfs/cdvdroot/RES00.RDB
   romfs/cdvdroot/RES00.RDI
   romfs/cdvdroot/RES10.RDB
-  data/main_strings_ja.json
-  data/main_strings_ko_menu_compact_patch.json
+  data/translation/main_strings_ja.json
+  data/translation/main_strings_ko_menu_compact_patch.json
   data/sjis_hangul_map.json
 ```
 
@@ -37,7 +37,7 @@ Python 3.10 이상과 표준 라이브러리를 기준으로 하며, 일부 분�
 ```powershell
 python tools/main_patch/patch_main_hardware_safe_pool.py `
   --main exefs/main `
-  --json data/main_strings_ko_menu_compact_patch.json `
+  --json data/translation/main_strings_ko_menu_compact_patch.json `
   --out build/main
 ```
 
