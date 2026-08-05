@@ -5,7 +5,8 @@ B) 줄폭 수정: reflow(공백↔개행 재배치)·압축 번역을 exe 문자
 """
 import sys, os, json, struct
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir(r"C:\Users\Jae Ho Lee\Desktop\z\실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
 import numpy as np
 
 orig = open('!exefs-작업/main-원본', 'rb').read()

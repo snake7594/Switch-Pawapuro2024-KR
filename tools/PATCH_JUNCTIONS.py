@@ -6,7 +6,8 @@ S2) 접합부(A=연결형끝 + B=명사시작) A 한국어에 후행 공백 추�
 검증: .text/헤더 불변."""
 import sys, os, json, struct, re
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir(r"C:\Users\Jae Ho Lee\Desktop\z\실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
 import numpy as np
 
 orig = open('!exefs-작업/main-원본', 'rb').read()

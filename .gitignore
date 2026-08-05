@@ -1,0 +1,19 @@
+# 작업공간 산출물 (저장소에 넣지 않음)
+inject_out/
+repack_out/
+mods/
+workspace/
+# 원본 게임 파일 (절대 커밋 금지)
+main
+RES00.RDB
+RES00.RDI
+RES10.RDB
+*.nsp
+*.xci
+# 배포 산출물
+*.xdelta
+*.xdelta.0*
+# 파이썬
+__pycache__/
+*.pyc
+!bootstrap/*.xdelta

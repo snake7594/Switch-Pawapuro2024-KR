@@ -1,2 +1,11 @@
+# 데이터 파일은 바이트 그대로 보존(MANIFEST의 MD5 유효성 유지)
+*.json -text
+*.tsv -text
+*.pack -text binary
+*.CHK -text binary
+*.xdelta -text binary
+*.exe -text binary
 *.bat -text
-*.exe -text
+# 소스·문서는 LF
+*.py text eol=lf
+*.md text eol=lf

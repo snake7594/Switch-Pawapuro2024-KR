@@ -10,7 +10,8 @@
    출력: inject_out/main-safe"""
 import os, sys, struct, json
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir("C:/Users/Jae Ho Lee/Desktop/z/실황2024"); sys.path.insert(0,".")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본+데이터). 미지정 시 현재 디렉터리 사용; sys.path.insert(0,".")
 import inject_lib as L
 
 SRC="!exefs-작업/main-원본"; OUT="inject_out/main-safe"

@@ -26,24 +26,24 @@ if not exist "%OUT%\ExeFS" mkdir "%OUT%\ExeFS"
 if not exist "%OUT%\RomFS\cdvdroot" mkdir "%OUT%\RomFS\cdvdroot"
 
 echo [1/4] main 패치 중...
-.\xdelta3.exe -d -f -s "main" "Pawa2024KR_v1.0_main.xdelta" "%OUT%\ExeFS\main"
+.\xdelta3.exe -d -f -s "main" "Pawa2024KR_v1.4_main.xdelta" "%OUT%\ExeFS\main"
 if errorlevel 1 goto :err
 
 echo [2/4] RES00.RDI 패치 중...
-.\xdelta3.exe -d -f -s "RES00.RDI" "Pawa2024KR_v1.0_RES00.RDI.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDI"
+.\xdelta3.exe -d -f -s "RES00.RDI" "Pawa2024KR_v1.4_RES00.RDI.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDI"
 if errorlevel 1 goto :err
 
 echo [3/4] RES10.RDB 패치 중...
-.\xdelta3.exe -d -f -s "RES10.RDB" "Pawa2024KR_v1.0_RES10.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES10.RDB"
+.\xdelta3.exe -d -f -s "RES10.RDB" "Pawa2024KR_v1.4_RES10.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES10.RDB"
 if errorlevel 1 goto :err
 
-if not exist "Pawa2024KR_v1.0_RES00.RDB.xdelta" (
+if not exist "Pawa2024KR_v1.4_RES00.RDB.xdelta" (
     echo [4/4] 분할 패치 결합 중...
-    copy /b "Pawa2024KR_v1.0_RES00.RDB.xdelta.001"+"Pawa2024KR_v1.0_RES00.RDB.xdelta.002" "Pawa2024KR_v1.0_RES00.RDB.xdelta" >nul
+    copy /b "Pawa2024KR_v1.4_RES00.RDB.xdelta.001"+"Pawa2024KR_v1.4_RES00.RDB.xdelta.002" "Pawa2024KR_v1.4_RES00.RDB.xdelta" >nul
     if errorlevel 1 goto :err
 )
 echo [4/4] RES00.RDB 패치 중... (6.6GB, 수 분 소요)
-.\xdelta3.exe -B 268435456 -d -f -s "RES00.RDB" "Pawa2024KR_v1.0_RES00.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDB"
+.\xdelta3.exe -B 268435456 -d -f -s "RES00.RDB" "Pawa2024KR_v1.4_RES00.RDB.xdelta" "%OUT%\RomFS\cdvdroot\RES00.RDB"
 if errorlevel 1 goto :err
 
 echo.

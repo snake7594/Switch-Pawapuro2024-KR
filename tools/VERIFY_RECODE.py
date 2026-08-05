@@ -6,7 +6,8 @@
  4) 재인코딩 표본: TEXT_HSIMSCH/NXSUR 라벨 tsv 디코드"""
 import sys, os, json, hashlib, random
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir(r"C:\Users\Jae Ho Lee\Desktop\z\실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
 import rdblib
 
 def load_tsv():

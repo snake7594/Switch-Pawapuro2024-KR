@@ -7,7 +7,7 @@
    repack_out 제자리 갱신, RDI 불변. 미매칭/공간부족은 원본복원."""
 import os, sys, struct, zlib, json, bisect
 sys.stdout.reconfigure(encoding='utf-8')
-ROOT="C:/Users/Jae Ho Lee/Desktop/z/실황2024"; os.chdir(ROOT); sys.path.insert(0,ROOT)
+ROOT = os.environ.get("PAWA_ROOT", os.getcwd()); os.chdir(ROOT); sys.path.insert(0,ROOT)
 import REPACK_AUTO as R
 import inject_lib as L
 RES="RES_추출원본"; OUT="repack_out"

@@ -8,7 +8,7 @@
    대상: 인자로 받은 CHK 목록(기본=이번 스크린샷 화면들)."""
 import os, sys, struct, zlib, json, bisect, re
 sys.stdout.reconfigure(encoding='utf-8')
-ROOT="C:/Users/Jae Ho Lee/Desktop/z/실황2024"; os.chdir(ROOT); sys.path.insert(0,ROOT)
+ROOT = os.environ.get("PAWA_ROOT", os.getcwd()); os.chdir(ROOT); sys.path.insert(0,ROOT)
 import REPACK_AUTO as R, inject_lib as L
 ENC=L.Encoder(os.path.join("!exefs-작업","hangul_to_hanja.tsv"))  # 통일: tsv — 2026-07-03 폰트 단일화
 OUT="repack_out"

@@ -4,7 +4,8 @@
    병합 후 재주입(REINJECT_SAFE / NXSUR_LABEL_INJECT / SEN_ROSTER_SLACK / FINALIZE_EXE_SAFE3 등) 필요."""
 import json, sys, os
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir("C:/Users/Jae Ho Lee/Desktop/z/실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본+데이터). 미지정 시 현재 디렉터리 사용
 if len(sys.argv)<2:
     print("사용: python APPLY_번역수정.py <수정한 json> [추가 json ...]"); sys.exit(1)
 

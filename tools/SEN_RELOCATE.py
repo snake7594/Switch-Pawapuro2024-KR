@@ -7,7 +7,7 @@
    기록 후 새 오프셋에서 재독 검증."""
 import os, sys, struct, zlib, json
 sys.stdout.reconfigure(encoding='utf-8')
-ROOT="C:/Users/Jae Ho Lee/Desktop/z/실황2024"; os.chdir(ROOT); sys.path.insert(0,ROOT)
+ROOT = os.environ.get("PAWA_ROOT", os.getcwd()); os.chdir(ROOT); sys.path.insert(0,ROOT)
 import REPACK_AUTO as R, inject_lib as L
 ENC=L.Encoder(os.path.join("!폰트작업","실황2024.wReplace"))
 OUT="repack_out"; FN="SEN_TEXT.CHK"; SECTOR=R.SECTOR

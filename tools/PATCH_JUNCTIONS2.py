@@ -6,7 +6,8 @@ P2) 조사 일치: [명사 레코드 N]+[조사로 시작하는 꼬리 C]에서 
 """
 import sys, os, json, struct
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir(r"C:\Users\Jae Ho Lee\Desktop\z\실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
 import numpy as np
 
 orig = open('!exefs-작업/main-원본', 'rb').read()

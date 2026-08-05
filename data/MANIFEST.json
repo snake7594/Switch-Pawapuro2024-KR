@@ -1,0 +1,22 @@
+{
+ "data/hangul_to_hanja.tsv": {
+  "md5": "61c1d3aae768138c2f79ccbbd0b49a0c",
+  "size": 21162
+ },
+ "data/rdb_residual.pack": {
+  "md5": "4aa8a208a1de4c0e80f6ee639acaaec5",
+  "size": 10489601
+ },
+ "data/마이라이프_대사.json": {
+  "md5": "2fb7af7bde0fb6267cfb35be2fbf460a",
+  "size": 7293053
+ },
+ "data/번역_마스터.json": {
+  "md5": "92f8c0169198f1b5d985c769f3e5c7cf",
+  "size": 26656379
+ },
+ "data/전체대사_재구성.json": {
+  "md5": "5155fcae408a0accfa1459d16a69e775",
+  "size": 29111737
+ }
+}

@@ -3,7 +3,8 @@
 안전 기준 동일: 데이터포인터 타겟 run 배제, ADRP/ADR 코드 페이지 배제, 현재도 0인 구간만 사용."""
 import sys, os, json, struct
 sys.stdout.reconfigure(encoding='utf-8')
-os.chdir(r"C:\Users\Jae Ho Lee\Desktop\z\실황2024")
+_R = os.environ.get("PAWA_ROOT")
+if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
 import numpy as np
 
 orig = open('!exefs-작업/main-원본', 'rb').read()
