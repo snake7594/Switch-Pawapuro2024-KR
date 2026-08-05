@@ -1,0 +1,29 @@
+{
+  "game": "실황 파워풀 프로야구 2026–2027",
+  "title_id": "01007e8023f36000",
+  "game_update": "1.1.0",
+  "release_tag": "2026-v1.1.0",
+  "source_archive": "Pawapuro2026-1.1.0-source.zip",
+  "original_game_files_excluded": true,
+  "main_patch_method": "in-place verified zero-fill pool with static data pointer redirects",
+  "font": {
+    "family": "Binggrae",
+    "style": "regular",
+    "glyph_order": "SJIS slots with KS X 1001/EUC-KR complete Hangul 2350 mapping"
+  },
+  "outputs": {
+    "main_size": 97643010,
+    "main_sha256": "4cb0ef73932d003cd8d1f2d4596a8645840e8c252c1b4436f102bf7f56b909bb",
+    "res00_rdb_size": 7573791232,
+    "res00_rdb_sha256": "111f439e8fc16f3a3458fbf6ee635155a75e944ee8db0c24edb601d9182fbf55",
+    "res00_rdi_size": 469504,
+    "res00_rdi_sha256": "ef7dba93d9bccb166a4152cd952a0e72a8fc7af6787300eef1d3bcb14ccee16b",
+    "res10_rdb_size": 178927104,
+    "res10_rdb_sha256": "9ec8c38e8ce5c7c128df1c1ed853d171c8233e83b0174aa890091225b3a163d6"
+  },
+  "notes": [
+    "The release contains xdelta patches and source data, not copyrighted original game files.",
+    "Apply only to an exact 1.1.0 dump; verify input hashes from the release notes before patching.",
+    "RDB slots that require relocation are intentionally left untouched for hardware safety."
+  ]
+}
