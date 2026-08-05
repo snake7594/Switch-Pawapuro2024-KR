@@ -52,9 +52,10 @@ for t in DEP.table:
 for k in laid: laid[k].sort()
 fsize = {n: os.path.getsize(os.path.join('repack_out', n)) for n in DEP.f}
 import bisect
+base_end = dict(fsize)   # ⚠제자리 쓰기 상한은 원본 끝 고정(재배치 영역 침범 방지)
 def gap(rdb, local):
     arr = laid[rdb]; j = bisect.bisect_right(arr, local)
-    return (arr[j] if j < len(arr) else fsize[rdb]) - local
+    return (arr[j] if j < len(arr) else base_end[rdb]) - local
 cursor = {n: align_up(fsize[n], SECTOR) for n in DEP.f}
 rs = dict(files=0, inj=0, inplace=0, reloc=0, skip=0)
 t0 = time.time()

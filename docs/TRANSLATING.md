@@ -11,6 +11,9 @@
 
 ## 파일 구조
 
+파일은 **항목 하나가 한 줄**로 되어 있습니다(약 24만 줄). 편집기에서 고치고 싶은 문구를
+검색해 그 줄의 `"ko"` 값만 바꾸면 됩니다.
+
 ```jsonc
 {
   "meta": { ... },
@@ -115,9 +118,10 @@ python tools/VERIFY_BUILD.py               # 고쳤으니 MD5는 달라집니다
 
 ```python
 # -*- coding: utf-8 -*-
-import json
-p = 'data/번역_마스터.json'
-m = json.load(open(p, encoding='utf-8'))
+import sys; sys.path.insert(0, 'tools')
+from master_io import load_master, save_master     # 가독(한 줄) 형식 유지
+
+m = load_master('data/번역_마스터.json')
 
 n = 0
 for r in m['rdb']:
@@ -126,11 +130,13 @@ for r in m['rdb']:
 for r in m['exe']:
     r['ko'] = r['ko'].replace('컨디숀', '컨디션')
 
-json.dump(m, open(p, 'w', encoding='utf-8'), ensure_ascii=False)
+save_master(m, 'data/번역_마스터.json')
 print('수정', n)
 ```
 
-> `ensure_ascii=False`를 빠뜨리면 파일이 몇 배로 커집니다. `indent`는 넣지 마세요(용량).
+> 직접 `json.dump`로 저장하면 파일이 **한 줄로 뭉쳐져 다시 열어볼 수 없게 됩니다.**
+> `master_io.save_master`를 쓰거나, 그렇게 저장해 버렸다면
+> `python tools/FORMAT_MASTER.py`로 되돌리세요(내용 동일성을 검증한 뒤에만 저장합니다).
 
 바이트 예산을 미리 검사하려면:
 

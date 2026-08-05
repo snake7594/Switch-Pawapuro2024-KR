@@ -4,6 +4,9 @@
 exe_ext 항목: {ko: 최종한글, ents: [frag별 ent_fpos 순서대로]}
   - ents[0] → 문장 VA 리다이렉트, ents[1:] → 빈문자열."""
 import sys, os, json, struct
+import sys as _s, os as _o
+_s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__)))
+from master_io import save_master   # 가독(레코드 한 줄) 형식 유지
 sys.stdout.reconfigure(encoding='utf-8')
 _R = os.environ.get("PAWA_ROOT")
 if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
@@ -49,5 +52,5 @@ print(f"exe_ext 추출: {len(exe_ext)} 문장(고유 {uniq}), ents 총 {tot_ents
 master = json.load(open('번역_마스터.json', encoding='utf-8'))
 master['exe_ext'] = exe_ext
 master['meta']['exe_ext_source'] = 'main-c 새영역 역추출(마이라이프 확장 완성문장). BUILD_FROM_MASTER.py로 재빌드.'
-json.dump(master, open('번역_마스터.json', 'w', encoding='utf-8'), ensure_ascii=False)
+save_master(master)
 print("마스터에 exe_ext 추가 저장 완료")

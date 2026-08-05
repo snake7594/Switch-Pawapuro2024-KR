@@ -99,9 +99,13 @@ for t in DEP.table:
     if loc: laid[loc[0]].append(loc[1])
 for k in laid: laid[k].sort()
 fsize = {n: os.path.getsize(os.path.join('repack_out', n)) for n in DEP.f}
+# ⚠제자리 쓰기의 상한은 '원본 끝'으로 고정한다. 재배치로 파일이 커진다고 해서 마지막 파일의
+#   여유가 늘어나는 것이 아니다(그 뒤는 재배치 영역). 고정하지 않으면 재배치본을 덮어써
+#   해당 CHK 가 깨진다(zlib 해제 실패).
+base_end = dict(fsize)
 def gap(rdb, local):
     arr = laid[rdb]; j = bisect.bisect_right(arr, local)
-    return (arr[j] if j < len(arr) else fsize[rdb]) - local
+    return (arr[j] if j < len(arr) else base_end[rdb]) - local
 cursor = {n: align_up(fsize[n], SECTOR) for n in DEP.f}
 
 st = dict(files=0, text=0, res=0, inplace=0, reloc=0, skip=0)

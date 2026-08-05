@@ -8,6 +8,9 @@
   E. 첫 조각이 공백 슬롯인데 완성문장을 주입 → 레이아웃 파손
 취소 = exe_ext에서 제외 = 리다이렉트 안 함 = 원본 조각 그대로(master['exe'] 번역) 표시."""
 import sys, os, json, re
+import sys as _s, os as _o
+_s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__)))
+from master_io import save_master   # 가독(레코드 한 줄) 형식 유지
 sys.stdout.reconfigure(encoding='utf-8')
 _R = os.environ.get("PAWA_ROOT")
 if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
@@ -47,7 +50,7 @@ print("취소 사유별:", Counter(cancel[x['ents'][0]] for x in removed).most_c
 print(f"exe_ext {before} → {len(kept)} (취소 {len(removed)}건 = 원본 조각 표시로 복원)")
 master['meta']['exe_ext_note'] = ('씬 재구성 오탐(UI항목/분기대사 뭉침) 취소분 제외. '
                                  '취소기준=인자시퀀스위반/대사창(72폭)초과/첫조각공백. CANCEL_BAD_EXT.py')
-json.dump(master, open('번역_마스터.json', 'w', encoding='utf-8'), ensure_ascii=False)
+save_master(master)
 json.dump([{'why': cancel[x['ents'][0]], 'ko': x['ko'], 'ents': x['ents']} for x in removed],
           open('_ext_cancelled.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print("마스터 갱신 완료 → BUILD_FROM_MASTER.py로 재빌드 필요")

@@ -2,6 +2,9 @@
 """루비/가나 잔존 교정(_ruby_fix_out) 검증 → 번역_마스터.json에 반영.
 검증: 가나·／ 잔존 없음, maxb 이내, spec/tag 보존. 통과분만 마스터 ko 갱신."""
 import sys, os, json, re, glob
+import sys as _s, os as _o
+_s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__)))
+from master_io import save_master   # 가독(레코드 한 줄) 형식 유지
 sys.stdout.reconfigure(encoding='utf-8')
 _R = os.environ.get("PAWA_ROOT")
 if _R: os.chdir(_R)   # 작업공간(원본 게임파일+데이터). 미지정 시 현재 디렉터리 사용
@@ -62,5 +65,5 @@ for k, r in enumerate(rows):
     else:
         t = rdb_idx.get((r['file'], r['off']))
         if t: t['ko'] = ko; applied += 1
-json.dump(master, open('번역_마스터.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+save_master(master)
 print(f"마스터 반영 {applied} / 검증탈락 {dict(rej)} / 최종실패 {still}")
