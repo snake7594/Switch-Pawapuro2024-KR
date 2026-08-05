@@ -40,15 +40,14 @@ Get-FileHash main -Algorithm MD5
 
 ## 1단계 · 자산 내려받기
 
-[릴리즈 페이지](../../releases/latest)에서 **6개 파일을 모두** 받습니다.
+[릴리즈 페이지](../../releases/latest)에서 **5개 파일을 모두** 받습니다.
 
 ```
 Pawa2024KR_v2.0_main.xdelta
 Pawa2024KR_v2.0_RES00.RDI.xdelta
 Pawa2024KR_v2.0_RES10.RDB.xdelta
 Pawa2024KR_v2.0_RES00.RDB.xdelta
-Pawa2024KR_tools.zip                 ← xdelta3.exe
-패치적용.bat
+Pawa2024KR_tools.zip                 ← xdelta3.exe + 패치적용.bat
 ```
 
 > v1.4 와 달리 `RES00.RDB` 패치가 412MB 로 작아져 **분할되어 있지 않습니다**
@@ -56,7 +55,7 @@ Pawa2024KR_tools.zip                 ← xdelta3.exe
 
 ## 2단계 · 패치 실행
 
-1. `Pawa2024KR_tools.zip`을 풀어 `xdelta3.exe`를 꺼냅니다.
+1. `Pawa2024KR_tools.zip`을 풀어 `xdelta3.exe`와 `패치적용.bat`을 꺼냅니다.
 2. **한 폴더에** 다음을 모두 모읍니다.
    - 원본 4파일 (`main`, `RES00.RDB`, `RES00.RDI`, `RES10.RDB`)
    - 내려받은 `.xdelta` 4개
