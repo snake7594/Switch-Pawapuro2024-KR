@@ -17,12 +17,18 @@ set PAWA_ROOT=D:\pawa_ws      # 미지정 시 현재 디렉터리를 작업공�
 
 | 파일 | 역할 |
 |---|---|
-| `SETUP_WORKSPACE.py` | 작업공간 구성(원본 MD5 검증 · 데이터 배치 · 부트스트랩 exe 복원) |
-| `BUILD_FROM_MASTER.py` | ★ 실행파일 빌드. 원본영역 주입 + 꼬리풀 완성문장 리다이렉트 + 자체검증 |
+| `SETUP_WORKSPACE.py` | 작업공간 구성(원본 MD5 검증 · 데이터 배치 · 베이스 exe 생성) |
+| `BUILD_BASE.py` | ★ 베이스 exe = 원본 + 죽은 zero-run 풀에 `exe_pool` 전체 문장 기록 + 포인터 리다이렉트 |
+| `BUILD_EXE.py` | ★ 실행파일 빌드. 원본영역 주입 + 꼬리풀 완성문장 리다이렉트 + 자체검증 (버전 상수 자동 유도) |
 | `BUILD_RDB_FROM_MASTER.py` | ★ RDB 빌드. 마스터 텍스트 주입 + 잔차 팩(폰트·이미지) 적용 |
-| `VERIFY_BUILD.py` | 산출물 MD5를 배포본 기준값과 대조 |
+| `VERIFY_EXE.py` | 빌드된 exe 구조·참조·풀·서식·잔존 검증 |
+| `VERIFY_RDB.py` | 빌드된 RDB 전 슬롯 무결성 + 폰트/텍스트 확인 |
+| `BUILD_FONT_2ND.py` | 새로 생긴 폰트 CHK에 한글 글리프 주입 |
+| `BUILD_RESIDUAL.py` | 잔차 팩 재생성(없어진 파일 제거 · 새 폰트 추가) |
 | `rdblib.py` | RDB/RDI 포맷 라이브러리(암복호화 · zlib · 재배치). 다른 도구들이 import |
-| `APPLY_MASTER.py` | 이미 만들어 둔 결과물 위에 마스터를 다시 덮어쓰는 빠른 경로 |
+| `port/` | 게임 업데이트 간 좌표 이식 도구 → [../docs/PORTING.md](../docs/PORTING.md) |
+| `VERIFY_BUILD.py` / `APPLY_MASTER.py` | 구 경로(게임 v1.8.0 기준값·하드코딩 경로 주의) |
+| `BUILD_FROM_MASTER.py` | ⛔ 구 exe 빌더. 게임 v1.8.0 상수가 하드코딩되어 있음 → `BUILD_EXE.py` 사용 |
 
 ## 분석·검사
 
@@ -65,6 +71,11 @@ set PAWA_ROOT=D:\pawa_ws      # 미지정 시 현재 디렉터리를 작업공�
 |---|---|
 | `EXPAND_NSO.py` | 실행파일 세그먼트 확장. 부팅은 되지만 **마이라이프 28일차에서 게임이 죽습니다.** 정적으로 모든 참조를 갱신하는 것이 원리적으로 불가능합니다 |
 | `INJECT_MYLIFE_EXPAND.py`, `INJECT_ALL_EXPAND.py` | 위 확장 방식을 전제로 한 주입 |
-| `SAFE_REDIRECT.py`, `INJECT_MYLIFE.py` | rodata의 0 영역(죽은풀)을 빈 공간으로 사용 → 셰이더 디스크립터 침범으로 **게임 시작 직후 GPU 크래시** |
+| `INJECT_MYLIFE.py` | rodata의 0 영역을 **조건 없이** 빈 공간으로 사용 → 셰이더 디스크립터 침범으로 **게임 시작 직후 GPU 크래시** ([HISTORY §6](../docs/HISTORY.md)) |
+
+> ⚠ `SAFE_REDIRECT.py` 는 **금지 목록이 아닙니다.** 데이터포인터 타깃·코드참조 페이지를 배제하고
+> 양끝 32B를 예약하는 조건부 zero-run 풀로, 이 조건이 붙은 버전(v2)이 실제 배포본에 들어가
+> 검증되었습니다. 현재는 `BUILD_BASE.py` 가 같은 공법을 마스터(`exe_pool`) 기준으로 재구현합니다.
+> 위험한 것은 **조건 없이 0 영역을 쓰는 것**입니다.
 
 자세한 경위는 [../docs/HISTORY.md](../docs/HISTORY.md).

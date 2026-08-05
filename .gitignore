@@ -16,4 +16,3 @@ RES10.RDB
 # 파이썬
 __pycache__/
 *.pyc
-!bootstrap/*.xdelta

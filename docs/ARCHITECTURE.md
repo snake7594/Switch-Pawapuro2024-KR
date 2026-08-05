@@ -4,15 +4,18 @@
 > (한 줄 요약: **한자 글리프 셀에 한글을 그려 넣고, 텍스트는 그 한자 코드로 제자리 치환하며,
 > 파일 크기는 절대 늘리지 않는다.**)
 
-- 대상: 타이틀 ID `0100d1c01c194000`, 2024-2025 시즌 업데이트 **v1.8.0** 기준 덤프
+- 대상: 타이틀 ID `0100d1c01c194000`, 게임 업데이트 **v1.15.0** 기준 덤프
 - 원본 4파일 MD5 (`tools/SETUP_WORKSPACE.py`의 검증값)
 
   | 파일 | 위치 | MD5 |
   |---|---|---|
-  | `main` | ExeFS | `916d81a491408bce1a1871efc24a6fa2` |
+  | `main` | ExeFS | `9164c7dc613bc2a447582ccee64c2256` |
   | `RES00.RDB` | RomFS `cdvdroot/` | `46ccf287fd62e9e2d51b193e788555a0` |
-  | `RES00.RDI` | RomFS `cdvdroot/` | `ad864a8bfb6b8bcf3b10481012a3f013` |
-  | `RES10.RDB` | RomFS `cdvdroot/` | `25d0b86b64fa3fcc389b00359fde96cb` |
+  | `RES00.RDI` | RomFS `cdvdroot/` | `3642336a108111be55a6851d3f2328db` |
+  | `RES10.RDB` | RomFS `cdvdroot/` | `f31f0418f0d6096d848fde10511c0878` |
+
+> 이 문서의 실측 오프셋·상수는 **v1.15.0** 기준이다. 게임이 업데이트되면 전부 달라진다 —
+> 빌드 도구는 상수를 하드코딩하지 않고 바이너리에서 유도한다. 이식 절차는 [PORTING.md](PORTING.md).
 
 ---
 
@@ -38,22 +41,22 @@
 
 | 파일 | 크기(원본) | 내용 |
 |---|---|---|
-| `main` | 약 106MB (무확장 빌드 결과 106,034,273B) | NSO0 실행파일. **텍스트의 압도적 다수가 여기 있다** — 메뉴·도움말·석세스/마이라이프/페넌트 이벤트 대사·능력명·업적 |
+| `main` | 약 106MB (무확장 빌드 결과 106,455,713B) | NSO0 실행파일. **텍스트의 압도적 다수가 여기 있다** — 메뉴·도움말·석세스/마이라이프/페넌트 이벤트 대사·능력명·업적 |
 | `RES00.RDB` | 6.6GB | 주 리소스 아카이브 (CHK 파일들의 컨테이너) |
-| `RES10.RDB` | 318MB | 보조 아카이브 (`SEN_TEXT*` 선수 소개문 등 일부 파일이 여기 소재) |
-| `RES00.RDI` | 428KB | **암호화된 인덱스**. 두 RDB 전체의 파일명 → 오프셋/크기/플래그 테이블 |
+| `RES10.RDB` | 396MB | 보조 아카이브 (`SEN_TEXT*` 선수 소개문 등 일부 파일이 여기 소재) |
+| `RES00.RDI` | 430KB | **암호화된 인덱스**. 두 RDB 전체의 파일명 → 오프셋/크기/플래그 테이블 |
 
 핵심 감각:
 
-- **텍스트 무게중심은 exe다.** 마스터 기준 exe 182,787건 vs RDB 54,510건.
+- **텍스트 무게중심은 exe다.** 마스터 기준 exe 182,818건 vs RDB 55,186건.
   시나리오 대사는 전부 exe에 있고 RDB에는 대본형 파일이 없다(스캔 확인).
 - RDB에 있는 텍스트는 **선수명(SEN_\*)·선수 소개문(SEN_TEXT\*)·팀/구장 라벨(NX SUR 위젯)·
   STRING 청크(중계 대사 등)** 성격이다.
-- **폰트는 RDB 안**(`COMMON_2D.CHK`, `COMMON_2D_ADD.CHK`)에 있다. exe만 패치하면 글자가 안 나온다.
+- **폰트는 RDB 안**(v1.15.0: `COMMON_2D.CHK`, `COMMON_2D_2ND.CHK`)에 있다. exe만 패치하면 글자가 안 나온다.
 
 ```
 romfs/cdvdroot/
-  RES00.RDI  ── (XOR 복호) ──▶ 15,543개 항목 { name, OFFSET, DEC_SIZE, flag }
+  RES00.RDI  ── (XOR 복호) ──▶ 15,564개 항목 { name, OFFSET, DEC_SIZE, flag }
   RES00.RDB  ── OFFSET*0x200 ──▶ [슬롯: 32B헤더 + zlib9(CHK 본문)]
   RES10.RDB  ── OFFSET ≥ 0x200000000 인 항목이 여기
 exefs/
@@ -69,7 +72,7 @@ exefs/
 
 ### 2.1 헤더 필드 (실측 오프셋)
 
-`tools/BUILD_FROM_MASTER.py` / `tools/EXPAND_NSO.py`가 읽는 위치:
+`tools/BUILD_EXE.py` / `tools/BUILD_BASE.py`가 읽는 위치:
 
 | 오프셋 | 의미 |
 |---|---|
@@ -93,18 +96,21 @@ RO_DELTA = ROD_MO - ROD_FO      # rodata: fileoff + RO_DELTA = VA
 - MOD0 필드는 **MOD0 자신의 VA 기준 상대 오프셋(int32)** 배열:
   `+4 dynamic`, `+8 bss_start`, `+0xC bss_end`, `+0x10 ehframe_start`, `+0x14 ehframe_end`,
   `+0x18 **module_object**` (런타임 write 대상 — 놓치면 2차 크래시)
-- `.dynamic` 자체는 `.data`에 있다 (실측 VA `0x64e8620`).
+- `.dynamic` 자체는 `.data`에 있다 (실측 VA `0x654f8e8`).
 
-실측된 주요 DT_ 값:
+실측된 주요 DT_ 값 (v1.15.0):
 
 | 태그 | 값 |
 |---|---|
-| `DT_RELA` (7) | `0x2ab0058` |
-| `DT_RELASZ` (8) | 엔트리 총 802,618개 (`RELACOUNT` = `0xc36e2` = 800,482) |
-| `DT_JMPREL` (23) | `0x3d0edc8` (PLT 재배치 857개) |
-| `DT_SYMTAB` (6) | `0x3d16020` (`SYMENT`=0x18) |
-| `DT_STRTAB` (5) | `0x3d1bdc8` |
+| `DT_RELA` (7) | `0x2af7058` (파일 `0x2af6769`) |
+| `DT_RELASZ` (8) | 엔트리 총 804,688개 (`RELACOUNT` = `0xc3ec0` = 802,496) |
+| `DT_JMPREL` (23) | `0x3d61fd8` (PLT 재배치 857개) |
+| `DT_SYMTAB` (6) | `0x3d69230` (`SYMENT`=0x18) |
+| `DT_STRTAB` (5) | `0x3d6efd8` (`STRSZ` = 39,989) |
 | `DT_PLTGOT`, `INIT_ARRAY`, `FINI_ARRAY` | `.data` 소재 |
+
+> 참고(v1.8.0): `DT_RELA=0x2ab0058`, 엔트리 802,618개, `DT_STRTAB=0x3d1bdc8`.
+> 업데이트로 `.text` +289,776B / `.rodata` +109,504B / `.data` +22,160B 커졌다.
 
 ### 2.3 DT_RELA 재배치 테이블 — **이 프로젝트의 심장**
 
@@ -120,15 +126,17 @@ RO_DELTA = ROD_MO - ROD_FO      # rodata: fileoff + RO_DELTA = VA
 ### 2.4 영역 경계 (하드코딩 상수)
 
 ```python
-DYN_HI = 0x3d2551d      # 동적 구조 영역 상한(파일 오프셋). 이 이하는 절대 손대지 않는다
+# ⚠ 하드코딩하지 말 것. 바이너리에서 유도한다:
+DYN_HI = va2fo(DT_STRTAB) + DT_STRSZ - 1   # 동적 구조 영역 상한(파일 오프셋)
+# v1.15.0 실측값 = 0x3d7831d   (v1.8.0 은 0x3d2551d)
 ```
 
-- **동적 영역 `[0x2aafb79, 0x3d2551d]`** = DT_RELA / JMPREL / HASH / GNU_HASH / SYMTAB / STRTAB.
-  이 구간은 **풀로 쓰거나 미정렬 write 금지**.
-- **문자열 영역** = `DYN_HI` 초과 ~ `ROD_FO + ROD_SZ` (실측 관찰 범위 `0x3d27108`~`0x4870147`).
+- **동적 영역 `[RELA_FO, DYN_HI]`** = DT_RELA / JMPREL / HASH / GNU_HASH / SYMTAB / STRTAB.
+  v1.15.0 기준 `[0x2af6769, 0x3d7831d]`. 이 구간은 **풀로 쓰거나 미정렬 write 금지**.
+- **문자열 영역** = `DYN_HI` 초과 ~ `ROD_FO + ROD_SZ` (v1.15.0: `0x3d7831e`~`0x5aca139`).
   모든 in-place 번역 주입은 이 안에서만 일어나며, 빌드 스크립트가 assert로 강제한다.
-- **bss 시작 VA `0x651fad8`** — 첫 바이트부터 RELA 타깃이라 live. `.data` 뒤로 확장 불가.
-- **대사 슬롯 포인터 배열 base `0x5d3d440`** (112,352 슬롯) — `.data` 소재.
+- **bss** — 첫 바이트부터 RELA 타깃이라 live. `.data` 뒤로 확장 불가.
+- **대사 슬롯 포인터 배열** — `.data` 소재. (v1.8.0 실측 base `0x5d3d440`, 112,352 슬롯)
 
 ---
 
@@ -268,17 +276,17 @@ UTF-8 CJK로 우연히 디코드된다. 반드시 가나 포함 여부 + 유니�
 
 ### 5.2 UNCDFONT 청크 내부 포맷
 
-`COMMON_2D.CHK` / `COMMON_2D_ADD.CHK` 안에 `UNCDFONT` 청크가 2개 있다.
+폰트 CHK 하나 안에 `UNCDFONT` 청크가 2개 있다.
 
-| 청크 | 글리프 크기 | 청크 오프셋(실측) | total_size | 글리프 슬롯 크기 |
-|---|---|---|---|---|
-| `FNTL` (대형) | 56×56 | `0x4200` | `0x5b9f10` | 1568B (4bpp = w*h/2) |
-| `FNTS` (소형) | 44×44 | `0x5be110` | `0x390150` | 968B |
+| 청크 | 글리프 크기 | 청크 오프셋(실측) | 글리프 슬롯 크기 |
+|---|---|---|---|
+| `FNTL` (대형) | 56×56 | `0x41e0` | 1568B (4bpp = w*h/2) |
+| `FNTS` (소형) | 44×44 | `COMMON_2D` `0x5be0f0` / `2ND` `0x5c6340` | 968B |
 
 내부:
 
 ```
-+0x20  글리프 수 (3787)
++0x20  글리프 수 (COMMON_2D 3787 / COMMON_2D_2ND 3808)
 +0x24  글리프 폭 w
 +0x28  글리프 높이 h
 +0x3C  부터 12바이트 레코드 × 글리프수:
@@ -293,16 +301,24 @@ UTF-8 CJK로 우연히 디코드된다. 반드시 가나 포함 여부 + 유니�
 
 ### 5.3 폰트가 2종인 이유와 인코딩 단일화
 
-- `COMMON_2D` (메인 폰트) 와 `COMMON_2D_ADD` (ADD 폰트) 두 벌이 있고,
-  **화면 영역마다 어느 폰트로 렌더되는지가 다르다.**
+- 폰트가 두 벌 있고 **화면 영역마다 어느 폰트로 렌더되는지가 다르다.**
+  - v1.8.0: `COMMON_2D` (메인) + `COMMON_2D_ADD` (ADD)
+  - **v1.15.0: `COMMON_2D_ADD` 가 삭제되고 `COMMON_2D_2ND` 가 신설**됐다.
+    `COMMON_2D` 본문은 두 버전이 **바이트 동일**하고, `2ND` 는 같은 구조에 한자 27자가 추가된 것.
 - 과거에는 CHK 주입은 `wReplace`(가→一), exe 주입은 `tsv`(가→亜) 두 인코딩을 썼는데,
   실제 렌더는 ADD 폰트가 하는 경우가 많아 **선수명이 통째로 깨졌다.**
-- 현재는 **`BUILD_FONT_TSV.py` 로 두 폰트 모두 tsv 매핑으로 통일**했다:
-  새 메인 폰트 = 원본(전 셀 한자) + tsv에 해당하는 셀에만 ADD 폰트 글리프를 복사(델타·메트릭 포함).
+- 현재는 **두 폰트 모두 tsv 매핑으로 통일**했다:
+  새 폰트 = 원본(전 셀 한자) + tsv에 해당하는 셀에만 한글 글리프를 복사(델타·메트릭 포함).
   → **인코더는 `hangul_to_hanja.tsv` 하나뿐**이다. (`wReplace`는 폐기)
+- 도구: `BUILD_FONT_TSV.py`(구 ADD 폰트를 소스로 메인 폰트 생성, 최초 1회) /
+  **`BUILD_FONT_2ND.py`(한글 `COMMON_2D` 를 소스로 새 폰트 CHK 한글화 — v1.15.0 에서 사용)**.
 
-산출물은 저장소 `data/fonts/COMMON_2D-한글폰트삽입.CHK`,
-`data/fonts/COMMON_2D_ADD-한글폰트삽입.CHK` 이며, 빌드 시 본문 통째 교체된다.
+산출물은 `data/rdb_residual.pack` 안에 **원본 대비 차이(runs)** 로 들어 있으며
+(`COMMON_2D.CHK` 10,954 runs / `COMMON_2D_2ND.CHK` 9,927 runs),
+`BUILD_RDB_FROM_MASTER.py` 가 빌드 시 적용한다. 팩 재생성은 `BUILD_RESIDUAL.py`.
+
+> **게임 업데이트로 폰트 파일이 바뀌면 반드시 새로 만들어야 한다.** 빠뜨리면 크래시는 없지만
+> 해당 화면의 한글이 전부 엉뚱한 글자로 렌더된다(§1 의 ADD 폰트 사고와 같은 증상).
 
 ---
 
@@ -417,7 +433,7 @@ addend는 8바이트 정렬된 정상 재배치 필드이므로 부팅에도 안
 
 ## 8. 꼬리풀(tail pool) 공법 — 현재 방식
 
-구현: `tools/BUILD_FROM_MASTER.py` (기본 동작, `--no-mylife`로 끔)
+구현: `tools/BUILD_EXE.py` (기본 동작, `--no-mylife`로 끔)
 
 ### 8.1 풀의 정의
 
@@ -449,7 +465,8 @@ for off, (jl, T, kl) in slot_geo.items():
 | # | 보호 대상 | 수집 방법 |
 |---|---|---|
 | 1 | **원본 RELA 전 타입 addend** | `DT_RELA` 전체를 `(N,3) uint64`로 읽어 `[:,2]` |
-| 2 | **safe28(현 베이스)의 RELA addend** | 과거 리다이렉트로 생긴 참조까지 반영. `r_info==0x403`만 |
+| 2 | **베이스(`main-base`)의 RELA addend** | 풀 리다이렉트로 생긴 참조까지 반영. `r_info==0x403`만 |
+| 2b | **베이스 전체의 데이터 포인터** | `.rodata`/`.data` 8정렬 워드값이 문자열영역 VA인 것 |
 | 3 | **JMPREL addend** | `DT_JMPREL` / `PLTRELSZ` |
 | 4 | **SYMTAB `st_value`** | `(STRTAB - SYMTAB) / SYMENT` 만큼 순회, `+8` |
 | 5 | **`.text` 코드 즉치 타깃** | `ADRP` + 뒤 8워드 내 같은 레지스터의 `ADD imm` 또는 `LDR/STR uimm` 페어 |
@@ -490,7 +507,7 @@ is_adrp = (text & 0x9f000000) == 0x90000000
   (set 순회 해시 랜덤화 때문에 md5가 흔들린 적 있음)
 
 파편화로 안 들어가는 긴 문장은 **축약 재번역** 워크플로로 처리했다(4라운드: 479→287→95→19→0).
-결과 **5,244 / 5,244 완성 문장 전량 수납, 스킵 0**.
+v1.15.0 기준 결과: **5,239 / 5,243 수납, 스킵 4**(스킵분은 원본 조각 표시가 유지된다).
 
 ### 8.5 멀티필드(비연속 ents) 제외
 
@@ -502,7 +519,7 @@ if len(se) >= 2 and any(se[i+1]-se[i] != 24 for i in range(len(se)-1)):
 
 RELA 스트라이드가 24가 아니면 = **사이에 구분 슬롯이 있다** = 이어지는 한 대사가 아니라
 **별개 UI 필드**(제목/프롬프트/내레이션)다. 이어붙이면 필드가 깨진다.
-**25건 제외**, 해당 항목은 safe28의 필드별 개별 번역 정렬을 그대로 보존한다.
+v1.8.0 에서 **25건**이 걸렸고, v1.15.0 마스터는 이식 단계에서 이미 걸러 넣었으므로 빌드 시 0건이다.
 
 ### 8.6 3단계 자체 검증 (assert)
 
@@ -534,6 +551,10 @@ RELA 스트라이드가 24가 아니면 = **사이에 구분 슬롯이 있다** 
       "ko": "번역",            // ← 수정 대상
       "maxb": 12 }             // 바이트 예산 = len(jp) + 후행 NUL 런
   ],
+  "exe_pool": [
+    { "off": 64000000,       // 위 exe 항목과 같은 슬롯을 가리킨다
+      "ko": "…잘리지 않은 전체 문장…" }   // 죽은 zero-run 풀에 기록해 포인터를 돌린다
+  ],
   "exe_ext": [
     { "ko": "오늘은 기다리고 기다리던 입단 기자회견.",
       "ents": [45023832, 45023856, ...] }   // 조각별 RELA 엔트리 **파일 오프셋**
@@ -548,30 +569,28 @@ RELA 스트라이드가 24가 아니면 = **사이에 구분 슬롯이 있다** 
 
 | 섹션 | 항목 수 | 의미 |
 |---|---|---|
-| `exe` | 182,787 | main의 문자열 영역 제자리 치환. `off <= DYN_HI` 이거나 `jp`가 원본과 불일치하면 스킵 |
-| `exe_ext` | 5,348 | 마이라이프 등 **완성 문장 리다이렉트**. `ents` = 그 문장을 이루는 조각들의 RELA 엔트리 위치 |
-| `rdb` | 54,510 | RDB CHK 안 문자열 제자리 치환 |
+| `exe` | 182,818 | main의 문자열 영역 제자리 치환. `off <= DYN_HI` 이거나 `jp`가 원본과 불일치하면 스킵 |
+| `exe_pool` | 34,575 | 제자리 예산을 넘겨 잘리는 문장의 **전체 텍스트**. 죽은 zero-run 풀에 기록하고 그 문자열을 가리키던 포인터를 전부 새 VA로 돌린다 |
+| `exe_ext` | 5,243 | 마이라이프 등 **완성 문장 리다이렉트**. `ents` = 그 문장을 이루는 조각들의 RELA 엔트리 위치 |
+| `rdb` | 55,186 | RDB CHK 안 문자열 제자리 치환 |
 
-- `off`는 **절대 수정 금지**(원본 좌표계). 번역자는 `ko`만 만진다.
-- 마스터는 **배포본에서 역추출**해 만들었다(배포본 vs 원본 diff 세그 → `{jp, ko, maxb}`).
-  무손실 왕복이 검증되어 있다: 무수정 재주입 시 exe md5 = `e07eea88…`(=safe28), RDB 3종 완전 일치.
-- ⚠ 베이스가 배포본(`main-safe28`)이므로, 배포본이 갱신되면 `BUILD_MASTER_*.py`로
-  마스터를 재추출해야 최신과 동기된다. 단 **평소에는 재추출하지 말 것** — `BUILD_FROM_MASTER`는
-  항상 safe28 + 마스터 전체 재주입이라 마스터만 고치면 결정적이고, 재추출은 이중 적용 위험이 있다.
+- `off` / `ents` 는 **절대 수정 금지**(원본 좌표계). 번역자는 `ko`만 만진다.
+- 같은 슬롯이 `exe` 와 `exe_pool` 양쪽에 있으면 **`exe` 는 잘린 사본, `exe_pool` 은 전체 문장**이다.
+  화면에 나오는 것은 포인터가 가리키는 쪽, 즉 `exe_pool` 이다. 둘 다 고쳐야 완전히 반영된다.
+- `exe_pool` 과 `exe_ext` 가 같은 엔트리를 다투면 **`exe_ext`(마이라이프 완성문장)가 이긴다**
+  — 빌드 순서상 나중에 addend 를 덮어쓴다(2,190건).
 
-### 9.1 부트스트랩 체인
-
-원본 `main`에서 곧바로 빌드되지 않는다. `main-safe28`이 베이스다.
+### 9.1 빌드 체인 (부트스트랩 없음)
 
 ```
-main (원본, 916d81a4…)
-  └─ bootstrap/main-safe28.xdelta 적용 ─▶ inject_out/main-safe28 (e07eea88…)
-        └─ BUILD_FROM_MASTER.py ─▶ inject_out/main-built
+main (원본 v1.15.0, 9164c7dc…)
+  └─ tools/BUILD_BASE.py  (원본 + exe_pool 리다이렉트)  ─▶ inject_out/main-base (6b0aa7a3…)
+        └─ tools/BUILD_EXE.py  (exe 제자리 주입 + exe_ext 꼬리풀) ─▶ inject_out/main-built (feff0c26…)
 ```
 
-safe28은 순한자 UI 복구·서식 지정자 수리·접합부 정비 등 **오프셋 기반 누적 패치의 결과물**이라
-마스터만으로 재현할 수 없다. 그래서 저장소가 xdelta로 들고 있다
-(`tools/SETUP_WORKSPACE.py`가 적용·MD5 검증).
+v1.4 까지는 `bootstrap/main-safe28.xdelta` 가 필요했다. 베이스에 **마스터로 설명되지 않는
+전체 문장 1.27MB** 가 들어 있었기 때문이다. 그 문장들을 역추출해 `exe_pool` 섹션으로 올린 뒤로는
+**부트스트랩 바이너리가 필요 없고, 베이스까지 결정적으로 재생성된다.** (경위: [PORTING.md](PORTING.md))
 
 ---
 
@@ -580,13 +599,13 @@ safe28은 순한자 UI 복구·서식 지정자 수리·접합부 정비 등 **�
 ### 10.1 명령
 
 ```bash
-python tools/SETUP_WORKSPACE.py <작업공간> --orig <원본4파일_폴더>
+python tools/SETUP_WORKSPACE.py <작업공간> --orig <원본4파일_폴더> --link
 set PAWA_ROOT=<작업공간>            # PowerShell: $env:PAWA_ROOT="..."
 
-python tools/BUILD_FROM_MASTER.py       # → inject_out/main-built
-python tools/BUILD_RDB_FROM_MASTER.py   # → repack_out/RES00.RDB, RES00.RDI, RES10.RDB
-# 또는 둘 다 + 배포:
-python tools/APPLY_MASTER.py --deploy
+python tools/BUILD_EXE.py                     # → inject_out/main-built
+python tools/BUILD_RDB_FROM_MASTER.py --fresh # → repack_out/RES00.RDB, RES00.RDI, RES10.RDB
+python tools/VERIFY_EXE.py main inject_out/main-built 번역_마스터.json !exefs-작업/hangul_to_hanja.tsv
+python tools/VERIFY_RDB.py repack_out 번역_마스터.json !exefs-작업/hangul_to_hanja.tsv
 ```
 
 모든 도구는 `PAWA_ROOT` 환경변수로 작업 디렉터리를 잡는다(미지정 시 현재 디렉터리).
@@ -596,26 +615,25 @@ python tools/APPLY_MASTER.py --deploy
 ```mermaid
 flowchart TD
     subgraph 입력
-      ORIG["원본 4파일<br/>main / RES00.RDB / RES00.RDI / RES10.RDB<br/>(MD5 검증)"]
-      MASTER["번역_마스터.json<br/>exe 182,787 · exe_ext 5,348 · rdb 54,510"]
+      ORIG["원본 4파일 (게임 v1.15.0)<br/>main / RES00.RDB / RES00.RDI / RES10.RDB<br/>(MD5 검증)"]
+      MASTER["번역_마스터.json<br/>exe 182,818 · exe_pool 34,575<br/>exe_ext 5,243 · rdb 55,186"]
       TSV["hangul_to_hanja.tsv<br/>가 → 亜"]
-      FONT["COMMON_2D(-ADD)-한글폰트삽입.CHK"]
-      BOOT["bootstrap/main-safe28.xdelta"]
+      FONT["rdb_residual.pack<br/>(COMMON_2D · COMMON_2D_2ND 한글 글리프)"]
     end
 
     ORIG --> SETUP[SETUP_WORKSPACE.py]
-    BOOT --> SETUP
     MASTER --> SETUP
     TSV --> SETUP
     FONT --> SETUP
-    SETUP --> S28["inject_out/main-safe28<br/>e07eea88…"]
+    SETUP --> BASE0["BUILD_BASE.py<br/>죽은 zero-run 풀 탐색 + exe_pool 기록<br/>+ 데이터포인터 리다이렉트"]
+    BASE0 --> S28["inject_out/main-base<br/>6b0aa7a3…"]
 
-    S28 --> B1["BUILD_FROM_MASTER 1단계<br/>master.exe 제자리 주입<br/>(region = jp + 후행NUL, UTF-8 안전절단)"]
-    B1 --> ASSERT1{{"assert: 동적영역[:0x3d2551d] 불변"}}
+    S28 --> B1["BUILD_EXE 1단계<br/>master.exe 제자리 주입<br/>(region = jp + 후행NUL, UTF-8 안전절단)"]
+    B1 --> ASSERT1{{"assert: 동적영역[:DYN_HI] 불변"}}
     ASSERT1 --> B2["2단계 꼬리풀<br/>풀 = [kr_end+1, jp_end)  758KB<br/>보호셋 5중으로 절단<br/>멀티필드 25건 제외"]
     B2 --> B3["비대칭 분할 패킹 + RELA addend 리다이렉트<br/>ents[0..k-1]→파트VA, 나머지→빈문자열VA"]
     B3 --> B4{{"검증 3종<br/>①문장체인 디코드 일치<br/>②diff ⊆ 할당∪addend<br/>③보호셋참조 ∩ 할당 = ∅<br/>+ text/data/헤더 불변"}}
-    B4 --> EXE["inject_out/main-built (결정적 md5)"]
+    B4 --> EXE["inject_out/main-built<br/>feff0c26… (결정적)"]
 
     ORIG --> R1["BUILD_RDB_FROM_MASTER<br/>repack_out 으로 원본 복사"]
     MASTER --> R2
@@ -684,13 +702,18 @@ mods/contents/0100d1c01c194000/
 
 | 도구 | 역할 |
 |---|---|
-| `SETUP_WORKSPACE.py` | 원본 MD5 검증 + 데이터 배치 + safe28 부트스트랩 |
-| `BUILD_FROM_MASTER.py` | **exe 빌드 (현재 방식: 무확장 꼬리풀)** |
+| `SETUP_WORKSPACE.py` | 원본 MD5 검증 + 데이터 배치 + 베이스 생성 |
+| `BUILD_BASE.py` | **베이스 = 원본 + zero-run 풀 리다이렉트(`exe_pool`)** |
+| `BUILD_EXE.py` | **exe 빌드 (무확장 꼬리풀, 버전 상수 자동 유도)** |
 | `BUILD_RDB_FROM_MASTER.py` | **RDB 빌드 (원본 → 한국어 RDB 전체 재생성)** |
-| `APPLY_MASTER.py` | exe + RDB 한 번에, `--deploy`로 mods 배포까지 |
+| `VERIFY_EXE.py` / `VERIFY_RDB.py` | 산출물 검증 |
+| `BUILD_FONT_2ND.py` / `BUILD_RESIDUAL.py` | 새 폰트 CHK 한글화 · 잔차 팩 재생성 |
+| `port/` | 게임 업데이트 간 좌표 이식([PORTING.md](PORTING.md)) |
+| `APPLY_MASTER.py` | exe + RDB 한 번에, `--deploy`로 mods 배포까지 (구 경로) |
 | `rdblib.py` | RDB/RDI 포맷·암복호화·슬롯 읽기 (`crypt_fast`) |
-| `EXPAND_NSO.py` | ❌ **폐기된 세그먼트 재배치 확장** (참고용, [HISTORY §6](HISTORY.md#6-세그먼트-재배치-확장expand_nso--마이라이프-28일차-크래시) 참조) |
-| `BUILD_FONT_TSV.py` | 메인 폰트를 tsv 매핑으로 재구축 |
+| `BUILD_FROM_MASTER.py` | ⛔ 구 exe 빌더(게임 v1.8.0 상수 하드코딩) |
+| `EXPAND_NSO.py` | ❌ **폐기된 세그먼트 재배치 확장** (참고용, [HISTORY §7](HISTORY.md) 참조) |
+| `BUILD_FONT_TSV.py` | 메인 폰트를 tsv 매핑으로 재구축(최초 1회) |
 | `AUDIT_BOGUS.py` / `_plaus.py` | 바이너리 오탐 주입 감사 |
 | `CANCEL_BAD_EXT.py` | 씬 오버리치 리다이렉트 취소 |
 | `FIX_FORMAT_EXE.py` | `%` 서식 지정자 보존 재주입 |
